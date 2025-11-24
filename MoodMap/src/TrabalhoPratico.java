@@ -23,7 +23,9 @@ public class TrabalhoPratico {
             printD(moodMap, numRows);
             printE(avgMoodPerDay);
             printF(moodMap, numRows, numColumns);
-            printG(moodMap, numRows, numColumns);
+            int[] maxEmoDaysPerPerson = printG(moodMap, numRows, numColumns);
+            printH(moodMap, numRows, numColumns);
+            printI(maxEmoDaysPerPerson);
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found. Verify the file path or URL.");
@@ -133,10 +135,12 @@ public class TrabalhoPratico {
         printSpacingBetweenEx();
     }
 
-    private static void printG (int[][] moodMap, int numRows, int numColumns) {
+    private static int[] printG (int[][] moodMap, int numRows, int numColumns) {
         // Considera-se emotional disorder se low mood (1 e 2) durante 2+ dias
 
         System.out.println("g) People with emotional disorders:");
+
+        int[] maxEmoDaysPerPerson = new int [numRows];
 
         for (int i = 0; i < numRows; i++){
             int countEmoDays = 0;
@@ -152,11 +156,67 @@ public class TrabalhoPratico {
                     maxEmoDays = countEmoDays;
                 }
             }
+            maxEmoDaysPerPerson[i] = maxEmoDays;
             if (maxEmoDays > 1) {
                 System.out.println("Person #" + i + " : " + maxEmoDays + " consecutive days");
             }
         }
         printSpacingBetweenEx();
+        return maxEmoDaysPerPerson;
+    }
+
+    private static void printH(int[][] moodMap, int numRows, int numColumns) {
+        System.out.println("h) People's Mood Level Charts:");
+
+        // para cada user
+        for (int i = 0; i < numRows; i++) {
+
+            // ver o maior nivel, para saber se se imprime todas as rows (ex person 2 so precisa de 2 niveis)
+            int maxLevel = checkMaxMood(moodMap[i]);
+            System.out.println("Person #" + i + ":");
+
+            // Para cada level, vamos percorrer o array de resultados da pessoa à procura de matches com aquele level, se encontrar põe um *, caso contrário um espaço. Esta forma é pouco eficiente porque vamos estar a correr a mesma array 5 vezes, 1 por cada level
+            for (int level = maxLevel; level > 0; level--) {
+                StringBuilder levelRow = new StringBuilder("  " + level + "  |");
+                for (int o = 0; o < numColumns; o++) {
+                    if (moodMap[i][o] != level) {
+                        levelRow.append(" ");
+                    } else {
+                        levelRow.append("*");
+                    }
+                }
+                System.out.println(levelRow);
+            }
+
+            // Constroi e imprime a moodBar. Adiciona "-" dinâmicamente consoante o numero de colunas
+            StringBuilder moodRow = new StringBuilder();
+            moodRow.append("Mood +");
+            moodRow.append("-".repeat(Math.max(0, numColumns)));
+            System.out.println(moodRow);
+
+            StringBuilder dayRow = new StringBuilder();
+            dayRow.append("      ");
+
+            // Como esta row so tem multiplos de 5, vamos percorrer o numero de colunas e caso seja multiplo, imprime, caso não, coloca espaço
+            for (int h = 0; h < numColumns; h++) {
+                dayRow.append(isMultipleOf5(h) ? h : " ");
+            }
+            System.out.println(dayRow);
+            printSpacingBetweenEx();
+        }
+    }
+
+    private static void printI (int[] maxEmoDaysPerPerson) {
+        System.out.println("i) Recommended therapy:");
+        for (int i = 0; i < maxEmoDaysPerPerson.length; i++) {
+            int maxEmoDays = maxEmoDaysPerPerson[i];
+            if (maxEmoDays > 1 && maxEmoDays < 5) {
+                System.out.println("Person #" + i + "  : listen to music");
+            }
+            if (maxEmoDays >=5) {
+                System.out.println("Person #" + i + "  : psychological support");
+            }
+        }
     }
 
 
@@ -224,5 +284,19 @@ public class TrabalhoPratico {
             }
         }
         return moodMap;
+    }
+
+    private static int checkMaxMood(int[] moodArray) {
+        int maxMood = moodArray[0];
+        for (int mood : moodArray){
+            if (mood > maxMood) {
+                maxMood = mood;
+            }
+        }
+        return maxMood;
+    }
+
+    private static boolean isMultipleOf5 (int num) {
+        return num % 5 == 0;
     }
 }
