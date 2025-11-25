@@ -26,6 +26,7 @@ public class TrabalhoPratico {
             int[] maxEmoDaysPerPerson = printG(moodMap, numRows, numColumns);
             printH(moodMap, numRows, numColumns);
             printI(maxEmoDaysPerPerson);
+            printJ(moodMap,numRows,numColumns);
 
         } catch (FileNotFoundException e) {
             System.out.println("File not found. Verify the file path or URL.");
@@ -207,18 +208,74 @@ public class TrabalhoPratico {
     }
 
     private static void printI (int[] maxEmoDaysPerPerson) {
-        System.out.println("i) Recommended therapy:");
+        System.out.print("i) Recommended therapy:");
         for (int i = 0; i < maxEmoDaysPerPerson.length; i++) {
             int maxEmoDays = maxEmoDaysPerPerson[i];
             if (maxEmoDays > 1 && maxEmoDays < 5) {
-                System.out.println("Person #" + i + "  : listen to music");
+                System.out.print("Person #" + i + "  : listen to music");
             }
             if (maxEmoDays >=5) {
                 System.out.println("Person #" + i + "  : psychological support");
             }
+            printSpacingBetweenEx();
         }
     }
 
+    private static void printJ(int[][] moodMap, int numRows, int numColumns) {
+
+        int bestScore = -1;             // Guarda o maior número de dias iguais entre um par de pessoas
+        int[] bestPeople = new int[0];  // Array que vai guardar os índices das pessoas que obtiverem o score acima (pode ser mais que 2 por isso usamos array)
+
+        for (int a = 0; a < numRows; a++) { // Percorre cada pessoa 'a'
+            for (int b = a + 1; b < numRows; b++) { // Percorre cada pessoa 'b' depois de 'a', para comparar pares
+
+                int same = 0; // Contador de dias iguais entre a e b
+                for (int d = 0; d < numColumns; d++) { // Percorre todos os dias
+                    if (moodMap[a][d] == moodMap[b][d]) // Se o humor da pessoa 'a' e 'b' no dia 'd' for igual
+                        same++; // Incrementa o contador de dias iguais
+                }
+
+                if (same > bestScore) {           // Se este par tem mais dias iguais que o melhor até agora
+                    bestScore = same;             // Atualiza o recorde de dias iguais
+                    bestPeople = new int[0];      // Limpa o array de pessoas anteriores
+                    bestPeople = increaseArraySize(bestPeople); // Aumenta o tamanho do array em 1
+                    bestPeople[0] = a;            // Guarda a primeira pessoa do novo melhor par
+                    bestPeople = increaseArraySize(bestPeople); // Aumenta novamente para guardar a segunda pessoa
+                    bestPeople[1] = b;            // Guarda a segunda pessoa do novo melhor par
+                }
+
+                /*
+                O else if em baixo está a ver se o same é igual a um bestScore. Isto significa que o par que está a ser
+                avaliado e teve same, tem que ser adicionado à lista do bestPeople. Isto acontece quando temos por exemplo,
+                person1 e person3 como bestPeople, mas depois há outro par com exactamente o mesmo numero de dias, então
+                a lista tem que ser actualizada.
+                 */
+                else if (same == bestScore) {
+                    if (!doesArrayContainValue(bestPeople, a)) { // Se a pessoa 'a' ainda não está no array
+                        bestPeople = increaseArraySize(bestPeople); // Aumenta o array
+                        bestPeople[bestPeople.length - 1] = a;      // Adiciona a pessoa 'a'
+                    }
+                    if (!doesArrayContainValue(bestPeople, b)) { // Se a pessoa 'b' ainda não está no array
+                        bestPeople = increaseArraySize(bestPeople); // Aumenta o array
+                        bestPeople[bestPeople.length - 1] = b;      // Adiciona a pessoa 'b'
+                    }
+                }
+            }
+        }
+
+        System.out.println("j) People with the most similar moods: "); // Mensagem inicial
+        for (int i = 0; i < bestPeople.length; i++) {   // Percorre todas as pessoas do array
+            if (i > 0) {
+                if (i == bestPeople.length - 1) {
+                    System.out.print(" and "); // "and" antes do último
+                } else {
+                    System.out.print(", ");   // vírgula entre os anteriores
+                }
+            }
+            System.out.print("Person #" + bestPeople[i]); // Imprime cada pessoa
+        }
+        System.out.println(" have the same mood on " + bestScore + " days"); // Mostra o número de dias iguais
+    }
 
     private static String getNumberOfDaysHeader(int numColumns) {
         StringBuilder numberOfDays = new StringBuilder();
@@ -298,5 +355,10 @@ public class TrabalhoPratico {
 
     private static boolean isMultipleOf5 (int num) {
         return num % 5 == 0;
+    }
+
+    private static boolean doesArrayContainValue(int[] arr, int value) {
+        for (int i : arr) if (i == value) return true;
+        return false;
     }
 }
